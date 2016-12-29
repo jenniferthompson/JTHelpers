@@ -24,9 +24,29 @@
 #' @export
 #'
 #' @seealso \href{https://cran.r-project.org/web/packages/survival/vignettes/timedep.pdf}{Terry
-#' Therneau's vignette on time-dependent Cox models}, \code{\link[survival]{survival}}.
+#' Therneau et al's vignette on time-dependent Cox models}, \href{https://cran.r-project.org/web/packages/survival/}{survival package}.
 #'
 #' @examples
+#'
+#' ## Create longitudinal data frame
+#' longdf <- data.frame(id = c(rep(1, 8), rep(2, 10)),
+#'                      day = c(1:8, 1:10),
+#'                      v1 = sample(1:5, size = 18, replace = TRUE),
+#'                      v2 = sample(LETTERS[1:5], size = 18, replace = TRUE))
+#'
+#' ## Create data frame with event status and times
+#' eventdf <- data.frame(id = 1:2,
+#'                       died = c('Yes', 'No'),
+#'                       days.deathorend = c(8, 10))
+#'
+#' ## Create count process data set
+#' create_countprocess_data(org.data = longdf,
+#'                          id.var = 'id',
+#'                          record.var = 'day',
+#'                          time.var = 'days.deathorend',
+#'                          event.var = 'died',
+#'                          event.string = 'Yes',
+#'                          data.set = eventdf)
 
 ## -- Function to create time-varying Cox data -- ##
 ## -- Original data set requires "id", "study.day" variables -- ##
@@ -39,6 +59,7 @@ create_countprocess_data <- function(org.data,
                                      data.set,
                                      out.strings = c('Alive through end of interval',
                                                      'Died at end of interval')){
+
   ## Get vector of unique IDs, create null list with one slot for each
   ids <- unique(org.data[, id.var])
   final.data <- vector("list", length(ids))
