@@ -22,7 +22,8 @@
 #' variable name and indicator for whether row contains reference:reference comparison.
 #'
 #' @import rms
-#' @importFrom dplyr mutate separate select
+#' @importFrom dplyr mutate select
+#' @importFrom tidyr separate
 #' @importFrom magrittr "%>%"
 #'
 #' @seealso \code{\link[rms]{ols}}, \code{\link[rms]{lrm}}, \code{\link[rms]{cph}},
@@ -106,8 +107,8 @@ rms_calc_comparisons <- function(rmsObj,
     ## Make reference, comparison columns character so they can be combined with data frames
     ## created for factors
     est.xb <- est.xb %>%
-      mutate(ref.c = as.character(round(ref, rndRC)),
-             comp.c = as.character(round(comp, rndRC)))
+      dplyr::mutate(ref.c = as.character(round(ref, rndRC)),
+                    comp.c = as.character(round(comp, rndRC)))
 
   ## For factor covariates:
   } else{
@@ -133,18 +134,18 @@ rms_calc_comparisons <- function(rmsObj,
     ## in rownames
     est.xb$tmp <- rownames(est.xb)
     est.xb <- est.xb %>%
-      separate(tmp, into = c('variable', 'comp.c', 'ref.c'), ' - |:')
+      tidyr::separate(tmp, into = c('variable', 'comp.c', 'ref.c'), ' - |:')
   }
 
   estimates <- est.xb %>%
-    mutate(is.ref = ref == comp) %>%
-    select(-diff, -se, -type)
+    dplyr::mutate(is.ref = ref == comp) %>%
+    dplyr::select(-diff, -se, -type)
 
   if(getRatios){
     estimates <- estimates %>%
-      mutate(effect = exp(effect),
-             lcl = exp(lcl),
-             ucl = exp(ucl))
+      dplyr::mutate(effect = exp(effect),
+                    lcl = exp(lcl),
+                    ucl = exp(ucl))
   }
 
   return(estimates)
