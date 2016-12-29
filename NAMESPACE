@@ -2,8 +2,11 @@
 
 export(create_countprocess_data)
 export(rms_calc_comparisons)
+export(rms_estimate_with_int)
 export(rms_model_results)
 import(rms)
+importFrom(broom,tidy)
+importFrom(dplyr,filter)
 importFrom(dplyr,mutate)
 importFrom(dplyr,select)
 importFrom(magrittr,"%>%")

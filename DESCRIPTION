@@ -10,7 +10,10 @@ Depends:
     magrittr (>= 1.5)
 Imports:
     dplyr,
-    tidyr
+    tidyr,
+    broom
+Suggests:
+    purrr
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
