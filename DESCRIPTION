@@ -5,7 +5,12 @@ Authors@R: person("Jennifer", "Thompson", email = "thompson.jennifer@gmail.com",
 Description: A package of helper functions I wrote for my own frequent use.
     Several are related to Frank Harrell’s rms package.
 Depends:
-    R (>= 3.3.1)
+    R (>= 3.3.1),
+    rms (>= 4.5-0),
+    magrittr (>= 1.5)
+Imports:
+    dplyr
+    tidyr
 License: GPL-2
 Encoding: UTF-8
 LazyData: true
