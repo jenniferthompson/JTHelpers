@@ -26,6 +26,8 @@
 #' @importFrom tidyr separate
 #' @importFrom magrittr "%>%"
 #'
+#' @export
+#'
 #' @seealso \code{\link[rms]{ols}}, \code{\link[rms]{lrm}}, \code{\link[rms]{cph}},
 #' \code{\link[rms]{Gls}}, \code{\link[rms]{summary.rms}}.
 #'
