@@ -51,11 +51,11 @@ mymod <- ols(Sepal.Length ~ Species + Sepal.Width, data = iris)
 dd.iris <- datadist(iris)
 options(datadist = 'dd.iris')
 
-## Continuous covariate
-rms_calc_comparisons(mymod, vname = Sepal.Width, df = iris)
+## Continuous covariate, comparing all quantiles to median by default
+rms_calc_comparisons(mymod, vname = 'Sepal.Width', df = iris)
 
-## Categorical covariate
-rms_calc_comparisons(mymod, vname = Species, df = iris)
+## Categorical covariate, comparing all levels to reference
+rms_calc_comparisons(mymod, vname = 'Species', df = iris)
 
 }
 \seealso{
