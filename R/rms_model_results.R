@@ -28,7 +28,7 @@
 #' coefficient or ratio and 95% CI, test statistic, df, and p-value, along with observations and
 #' model statistics.
 #'
-#' @seealso \code{\link{[rms]ols}}, \code{\link{[rms]lrm}}, \code{\link{[rms]cph}},
+#' @seealso \code{\link{rms::ols}}, \code{\link{[rms]lrm}}, \code{\link{[rms]cph}},
 #' \code{\link{[rms]Gls}}, \code{\link{[rms]summary.rms}}, \code{\link{[rms]anova.rms}}.
 #'
 #' @examples

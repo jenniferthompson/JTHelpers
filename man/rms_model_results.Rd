@@ -72,7 +72,7 @@ rms_model_results(mymod, labeldf = mtcars, shortLabs = c('cyl' = 'Cylinders', 'w
 
 }
 \seealso{
-\code{\link{[rms]ols}}, \code{\link{[rms]lrm}}, \code{\link{[rms]cph}},
+\code{\link{rms::ols}}, \code{\link{[rms]lrm}}, \code{\link{[rms]cph}},
 \code{\link{[rms]Gls}}, \code{\link{[rms]summary.rms}}, \code{\link{[rms]anova.rms}}.
 }
 
