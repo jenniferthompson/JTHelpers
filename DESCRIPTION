@@ -9,7 +9,7 @@ Depends:
     rms (>= 4.5-0),
     magrittr (>= 1.5)
 Imports:
-    dplyr
+    dplyr,
     tidyr
 License: GPL-2
 Encoding: UTF-8
