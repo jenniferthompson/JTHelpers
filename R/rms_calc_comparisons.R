@@ -21,7 +21,8 @@
 #' @return data.frame containing reference, comparison, effect, lower and upper confidence limits,
 #' variable name and indicator for whether row contains reference:reference comparison.
 #'
-#' @import dplyr
+#' @import rms
+#' @importFrom dplyr mutate separate select
 #' @importFrom magrittr "%>%"
 #'
 #' @seealso \code{\link[rms]{ols}}, \code{\link[rms]{lrm}}, \code{\link[rms]{cph}},
