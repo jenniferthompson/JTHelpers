@@ -22,7 +22,6 @@
 #' ratio, R^2, C, Dxy, as available. (Model df are included in the main table.)
 #'
 #' @import rms
-#' @importFrom Hmisc contents label
 #'
 #' @return data.frame containing quantity descriptions, reference and comparison values,
 #' coefficient or ratio and 95% CI, test statistic, df, and p-value, along with observations and
