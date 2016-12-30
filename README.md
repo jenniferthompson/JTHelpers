@@ -26,6 +26,8 @@ imputed data set, combining them with this updated function in order to work wit
 `mice` package.
 * `lm_diagnostics()`: Creates figures to check hetereoscedasticity and normality assumptions of a
 linear regression model.
+* `calc_nb_results()`: For a `glm.nb` model fit, calculates predicted counts and CIs for each row in
+a supplied design matrix.
 * Formatting:
     * `rndformat()`: Rounds and formats a numeric value to the same number of decimal places to give
     a cleaner look.

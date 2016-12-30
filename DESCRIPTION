@@ -13,7 +13,8 @@ Depends:
     rms (>= 4.5-0),
     magrittr (>= 1.5),
     mice (>= 2.25),
-    ggplot2 (>= 2.1.0)
+    ggplot2 (>= 2.1.0),
+    MASS (>= 7.3-45)
 Imports:
     dplyr,
     tidyr,
