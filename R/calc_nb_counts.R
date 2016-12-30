@@ -34,13 +34,13 @@
 #' mydmat <- cbind(mydmat, mydmat[,2] * mydmat[,3])
 #' colnames(mydmat) <- c('(Intercept)', 'v1', 'v2', 'v1:v2')
 #'
-#' calc_nb_results(mymod, designMatrix = mydmat, predVar = 'v1', intVar = 'v2')
+#' calc_nb_counts(mymod, designMatrix = mydmat, predVar = 'v1', intVar = 'v2')
 #'
 
-calc_nb_results <- function(nbObj,
-                            designMatrix,
-                            predVar,
-                            intVar = NULL){
+calc_nb_counts <- function(nbObj,
+                           designMatrix,
+                           predVar,
+                           intVar = NULL){
 
   is.mice <- inherits(nbObj, 'mira')
 
