@@ -12,10 +12,10 @@
 #'
 #'
 #'####################################################################################################
-## Function for multiple plots per page in ggplot
-## Written by Winston Chang;
-##  source: http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/
-####################################################################################################
+#'## Function for multiple plots per page in ggplot
+#'## Written by Winston Chang;
+#'##  source: http://www.cookbook-r.com/Graphs/Multiple_graphs_on_one_page_(ggplot2)/
+#'####################################################################################################
 
 # Multiple plot function
 #

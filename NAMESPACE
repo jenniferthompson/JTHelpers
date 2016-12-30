@@ -2,6 +2,7 @@
 
 export(as.mids.update)
 export(create_countprocess_data)
+export(lm_diagnostics)
 export(multiplot)
 export(rms_calc_comparisons)
 export(rms_estimate_with_int)
