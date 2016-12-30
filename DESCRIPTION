@@ -1,13 +1,17 @@
 Package: JTHelpers
 Title: Personal Helper Functions, Some Related to rms Package
 Version: 0.0.0.9000
-Authors@R: person("Jennifer", "Thompson", email = "thompson.jennifer@gmail.com", role = c("aut", "cre"))
+Authors@R: c(person("Jennifer", "Thompson",
+                  email = "thompson.jennifer@gmail.com",
+                  role = c("aut", "cre")),
+             person("Cole", "Beck", role = 'aut'))
 Description: A package of helper functions I wrote for my own frequent use.
     Several are related to Frank Harrell’s rms package.
 Depends:
     R (>= 3.3.1),
     rms (>= 4.5-0),
-    magrittr (>= 1.5)
+    magrittr (>= 1.5),
+    mice (>= 2.25)
 Imports:
     dplyr,
     tidyr,
