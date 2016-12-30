@@ -11,6 +11,9 @@ A package of helper functions I wrote for my own frequent use. I hope they help 
     given level of another variable using `summary.rms()`. Returns a tidy data frame with columns
     for main and interacting variable names and levels and numeric columns for effects and CIs. Will
     often be used in conjunction with `lapply` or `purrr::map`/`purrr::pmap`.
+    * `rms_po_assume()`: Creates figures to visually examine proportional odds assumption from an
+    `lrm` model fit. Based on code and method outlined in Harrell's Regression Modeling Strategies
+    (2001).
 * `create_countprocess_data()`: Creates a data set for use in a time-dependent Cox regression model.
 Majority of this code was written by Zhiguo (Alex) Zhao with edits from Cole Beck; to the best of my
 knowledge it is not available in another package, so is here for my convenience.
@@ -21,3 +24,5 @@ when only some days had recorded data for that condition. I created multiple imp
 the condition imputed on each missing day, then calculated durations for each patient in each 
 imputed data set, combining them with this updated function in order to work with the rest of the
 `mice` package.
+* `lm_diagnostics()`: Creates figures to check hetereoscedasticity and normality assumptions of a
+linear regression model.
