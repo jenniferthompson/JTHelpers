@@ -28,6 +28,8 @@ imputed data set, combining them with this updated function in order to work wit
 linear regression model.
 * `calc_nb_counts()`: For a `glm.nb` model fit, calculates predicted counts and CIs for each row in
 a supplied design matrix.
+* `calc_nb_ratioci()`: For a `glm.nb` model fit, calculates incidence rate ratio and CI for a
+specified continuous predictor variable and comparison (eg, 75th vs 25th percentile).
 * Formatting:
     * `rndformat()`: Rounds and formats a numeric value to the same number of decimal places to give
     a cleaner look.

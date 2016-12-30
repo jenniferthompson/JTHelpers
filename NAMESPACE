@@ -2,6 +2,7 @@
 
 export(as.mids.update)
 export(calc_nb_counts)
+export(calc_nb_ratioci)
 export(create_countprocess_data)
 export(formatp)
 export(lm_diagnostics)
