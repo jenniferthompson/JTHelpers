@@ -26,3 +26,8 @@ imputed data set, combining them with this updated function in order to work wit
 `mice` package.
 * `lm_diagnostics()`: Creates figures to check hetereoscedasticity and normality assumptions of a
 linear regression model.
+* Formatting:
+    * `rndformat()`: Rounds and formats a numeric value to the same number of decimal places to give
+    a cleaner look.
+    * `formatp()`: Formats a numeric value to be "<0.0001", "<0.001", or rounded to 3 decimal
+    places, depending on value. Intended for formatting p-values.

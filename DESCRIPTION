@@ -4,7 +4,8 @@ Version: 0.0.0.9000
 Authors@R: c(person("Jennifer", "Thompson",
                   email = "thompson.jennifer@gmail.com",
                   role = c("aut", "cre")),
-             person("Cole", "Beck", role = 'aut'))
+             person("Cole", "Beck", role = 'aut'),
+             person("Zhiguo", "Zhao", role = 'aut'))
 Description: A package of helper functions I and others wrote for my own frequent use.
     Several are related to Frank Harrell’s rms package.
 Depends:
