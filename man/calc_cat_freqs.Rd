@@ -27,7 +27,7 @@ List with 1 or 2 elements: always $freqNums, and $freqStrings if pctString = TRU
 }
 \description{
 This function was inspired by \code{Hmisc::describe}, but adding the flexibility to use a
-vector of denominators vs \code(length(non-missing values)) to calculate proportions. For
+vector of denominators vs \code{length(non-missing values)} to calculate proportions. For
 example, we might have a multicenter study and want the proportion of patients excluded out of
 those enrolled per site.
 }
