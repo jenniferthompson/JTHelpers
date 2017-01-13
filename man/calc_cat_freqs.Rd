@@ -13,14 +13,14 @@ calc_cat_freqs(descVar, allLevels, overall = TRUE, changeDenom = FALSE,
 
 \item{allLevels}{Vector with all levels which should be present. Defaults to unique(descVar).}
 
-\item{overall}{Logical; whether to provide overall count/%.}
+\item{overall}{Logical; whether to provide overall count and percent.}
 
 \item{changeDenom}{Logical; whether to use a different denominator than length(descVar).}
 
 \item{useDenom}{Numeric vector (length = length(allLevels)); denominators to be used if
 changeDenom = TRUE.}
 
-\item{pctString}{Logical; whether to include a second element of strings of form "N (Pct%)".}
+\item{pctString}{Logical; whether to include a second element of strings of form "N (Pct)".}
 }
 \value{
 List with 1 or 2 elements: always $freqNums, and $freqStrings if pctString = TRUE.
