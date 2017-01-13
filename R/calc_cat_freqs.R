@@ -67,8 +67,9 @@ calc_cat_freqs <- function(descVar,
     }
 
     if(!all(allLevels %in% unique(descVar))){
+      notInDescvar <- setdiff(allLevels, unique(descVar))
       message(paste('Not all values of allLevels are in descVar. The following values will be added with N = 0:',
-                    paste(sort(notInLevels), collapse = '; ')))
+                    paste(sort(notInDescvar), collapse = '; ')))
     }
   } else{
     allLevels <- unique(descVar)
@@ -111,7 +112,9 @@ calc_cat_freqs <- function(descVar,
     totalN <- sum(levelNs)
     levelNs <- c(levelNs, totalN)
     levelNames <- c(levelNames, 'Overall')
-    useDenom <- c(useDenom, sum(useDenom))
+    if(length(useDenom) > 1){
+      useDenom <- c(useDenom, sum(useDenom))
+    }
   }
 
   ## Calculate proportions
