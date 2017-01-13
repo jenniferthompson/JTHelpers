@@ -50,7 +50,7 @@ calc_cat_freqs(x, allLevels = LETTERS[1:4], changeDenom = TRUE, useDenom = sum(x
 
 ## Maybe A-E are sites and x represents a patient excluded from each; we want the denominator to
 ## be number screened at each site
-## Let's pretend this is the number screened:
+## Let us pretend this is the number screened:
 nScreened <- c(100, 110, 120, 130, 140)
 calc_cat_freqs(x, changeDenom = TRUE, useDenom = nScreened)
 
