@@ -224,8 +224,8 @@ rms_model_results <- function(rmsObj,
     colname <- format.cols[i]
     mod.data[,colname] <- ifelse(!is.na(as.numeric(as.character(mod.data[,colname]))),
                                  format(round(as.numeric(as.character(mod.data[,colname])),
-                                              rnd.digits),
-                                        nsmall = rnd.digits),
+                                              rndDigits),
+                                        nsmall = rndDigits),
                                  as.character(mod.data[,colname]))
     mod.data[,colname] <- ifelse(is.na(mod.data[,colname]), '', mod.data[,colname])
   }
