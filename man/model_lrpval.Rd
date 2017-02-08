@@ -7,15 +7,17 @@ Runs model without `removeTerm` and performs likelihood ratio test for full mode
 `function(variable)` - eg, `rcs(age, 3)` - is considered one term, as are all levels of a
 categorical variable.}
 \usage{
-model_lrpval(orgModel, removeTerm)
+model_lrpval(orgModel, removeTerm, ...)
 }
 \arguments{
 \item{orgModel}{Model object containing full model.}
 
 \item{removeTerm}{Character string of term(s) to be removed.}
+
+\item{...}{Additional arguments specific to method.}
 }
 \value{
-Numeric value; p-value from `lrtest()`.
+Numeric value; p-value from `lrtest()` or `pool.compare()`.
 }
 \description{
 Likelihood ratio p-values for full model vs model with one term removed
@@ -23,19 +25,7 @@ Runs model without `removeTerm` and performs likelihood ratio test for full mode
 `function(variable)` - eg, `rcs(age, 3)` - is considered one term, as are all levels of a
 categorical variable.
 }
-\examples{
-
-## Fit full model using iris data
-fullModel <- lm(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width, data = iris)
-
-## What about just the effect of Petal.Length?
-model_lrpval(fullModel, 'Petal.Length')
-
-## What about the effect of both Petal variables?
-model_lrpval(fullModel, 'Petal.Length + Petal.Width')
-
-}
 \seealso{
-\code{\link[lmtest]{lrtest}}.
+\code{model_lrpval.default, model_lrpval.mira}.
 }
 
