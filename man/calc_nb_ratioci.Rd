@@ -16,7 +16,7 @@ calc_nb_ratioci(nbObj = NULL, ...)
   alpha = 0.05)
 }
 \arguments{
-\item{nbObj}{Model fit of class `glm.nb`, or `mice::mira` object fit using glm.nb.}
+\item{nbObj}{Model fit of class glm.nb, or `mice::mira` object fit using glm.nb.}
 
 \item{predVar}{Character string; name of main predictor variable.}
 
@@ -28,9 +28,9 @@ applicable.}
 
 \item{alpha}{Alpha level for confidence limits. Defaults to 0.05.}
 
-\item{nbCoefs}{Vector of coefficients for a `glm.nb` model.}
+\item{nbCoefs}{Vector of coefficients for a glm.nb model.}
 
-\item{nbVcov}{Variance-covariance matrix for a `glm.nb` model.}
+\item{nbVcov}{Variance-covariance matrix for a glm.nb model.}
 }
 \value{
 `data.frame` with one row, containing columns for point estimate, confidence limits, and

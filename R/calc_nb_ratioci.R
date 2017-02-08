@@ -3,9 +3,9 @@
 #'
 #' Currently doesn't handle interaction terms or categorical predVars.
 #'
-#' @param nbObj Model fit of class `glm.nb`, or `mice::mira` object fit using glm.nb.
-#' @param nbCoefs Vector of coefficients for a `glm.nb` model.
-#' @param nbVcov Variance-covariance matrix for a `glm.nb` model.
+#' @param nbObj Model fit of class glm.nb, or `mice::mira` object fit using glm.nb.
+#' @param nbCoefs Vector of coefficients for a glm.nb model.
+#' @param nbVcov Variance-covariance matrix for a glm.nb model.
 #' @param predVar Character string; name of main predictor variable.
 #' @param adjustTo Numeric vector of length 2; values to adjust `predVar` to. Defaults to `c(25th,
 #' 75th percentiles)`.
@@ -16,7 +16,7 @@
 #' @return `data.frame` with one row, containing columns for point estimate, confidence limits, and
 #' reference and comparison values used.
 #'
-#' @importFrom MASS `glm.nb`
+#' @importFrom MASS glm.nb
 #' @import mice
 #'
 #' @export
@@ -45,7 +45,7 @@ calc_nb_ratioci <- function(nbObj = NULL, ...){ UseMethod("calc_nb_ratioci2", nb
 #' Default method uses given coefficients and variance-covariance matrix. Intended use cases include
 #' bootstrapped negative binomial models.
 #'
-#' @importFrom MASS `glm.nb`
+#' @importFrom MASS glm.nb
 #'
 #' @export
 #'
@@ -155,7 +155,7 @@ calc_nb_ratioci.default <- function(nbObj = NULL,
 }
 
 #' @rdname calc_nb_ratioci
-#' @importFrom MASS `glm.nb`
+#' @importFrom MASS glm.nb
 #' @import mice
 #'
 #' @export
@@ -253,7 +253,7 @@ calc_nb_ratioci.mira <- function(nbObj,
 }
 
 #' @rdname calc_nb_ratioci
-#' @importFrom MASS `glm.nb`
+#' @importFrom MASS glm.nb
 #'
 #' @export
 #'
