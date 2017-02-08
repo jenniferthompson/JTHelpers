@@ -2,31 +2,38 @@
 % Please edit documentation in R/calc_nb_ratioci.R
 \name{calc_nb_ratioci}
 \alias{calc_nb_ratioci}
-\title{Calculate incidence rate ratio and 95% confidence limits from a negative binomial regression
+\alias{calc_nb_ratioci.mira}
+\alias{calc_nb_ratioci.negbin}
+\title{Calculate incidence rate ratio and confidence limits from a negative binomial regression
 model for a given comparison in a continuous predictor variable.}
 \usage{
-calc_nb_ratioci(nbObj, nbCoefs, nbVcov, predVar, adjustTo = NULL, df,
+calc_nb_ratioci(nbObj = NULL, ...)
+
+\method{calc_nb_ratioci}{mira}(nbObj, predVar, adjustTo = NULL, df,
+  alpha = 0.05)
+
+\method{calc_nb_ratioci}{negbin}(nbObj, predVar, adjustTo = NULL, df,
   alpha = 0.05)
 }
 \arguments{
-\item{nbObj}{Model fit of class glm.nb, or mice::mira object fit using glm.nb.}
-
-\item{nbCoefs}{Vector of coefficients for a glm.nb model.}
-
-\item{nbVcov}{Variance-covariance matrix for a glm.nb model.}
+\item{nbObj}{Model fit of class `glm.nb`, or `mice::mira` object fit using glm.nb.}
 
 \item{predVar}{Character string; name of main predictor variable.}
 
-\item{adjustTo}{Numeric vector of length 2; values to adjust predVar to. Defaults to c(25th,
-75th percentiles).}
+\item{adjustTo}{Numeric vector of length 2; values to adjust `predVar` to. Defaults to `c(25th,
+75th percentiles)`.}
 
-\item{df}{Data frame used to get defaults for adjustTo and to calculate nonlinear terms if
+\item{df}{Data frame used to get defaults for `adjustTo` and to calculate nonlinear terms if
 applicable.}
 
 \item{alpha}{Alpha level for confidence limits. Defaults to 0.05.}
+
+\item{nbCoefs}{Vector of coefficients for a `glm.nb` model.}
+
+\item{nbVcov}{Variance-covariance matrix for a `glm.nb` model.}
 }
 \value{
-data.frame with one row, containing columns for point estimate, confidence limits, and
+`data.frame` with one row, containing columns for point estimate, confidence limits, and
 reference and comparison values used.
 }
 \description{
@@ -44,9 +51,39 @@ mymod <- MASS::glm.nb(y ~ v1 * v2, data = df)
 
 calc_nb_ratioci(mymod, predVar = 'v1', df = df)
 
+
+## Create data frame
+df <- data.frame(y = round(rexp(n = 100, rate = 0.5)),
+                 v1 = sample(c(1:5, NA), size = 100, replace = TRUE),
+                 v2 = rnorm(n = 100))
+
+## Impute missing data using mice
+mids.df <- mice(df)
+
+## Fit negative binomial model
+mymod <- with(mids.df, glm.nb(y ~ v1 * v2))
+
+calc_nb_ratioci(mymod, predVar = 'v1', df = df)
+
+
+## Create data frame
+df <- data.frame(y = round(rexp(n = 100, rate = 0.5)),
+                 v1 = sample(1:5, size = 100, replace = TRUE),
+                 v2 = rnorm(n = 100))
+
+## Fit negative binomial model
+mymod <- MASS::glm.nb(y ~ v1 * v2, data = df)
+
+calc_nb_ratioci(mymod, predVar = 'v1', df = df)
+
 }
 \seealso{
-\code{\link[MASS]{glm.nb}}; \code{\link[mice]{is.mice}}, \code{\link[mice]{pool}};
+\code{\link[MASS]{glm.nb}}; \code{\link[mice]{mice}}, \code{\link[mice]{pool}};
 \code{\link[Hmisc]{rcspline.eval}} for nonlinear terms.
+
+\code{\link[MASS]{glm.nb}}; \code{\link[mice]{mice}} \code{\link[Hmisc]{rcspline.eval}}
+for nonlinear terms.
+
+\code{\link[MASS]{glm.nb}}; \code{\link[Hmisc]{rcspline.eval}} for nonlinear terms.
 }
 
