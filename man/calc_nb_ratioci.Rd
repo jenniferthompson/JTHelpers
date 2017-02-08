@@ -2,12 +2,16 @@
 % Please edit documentation in R/calc_nb_ratioci.R
 \name{calc_nb_ratioci}
 \alias{calc_nb_ratioci}
+\alias{calc_nb_ratioci.default}
 \alias{calc_nb_ratioci.mira}
 \alias{calc_nb_ratioci.negbin}
 \title{Calculate incidence rate ratio and confidence limits from a negative binomial regression
 model for a given comparison in a continuous predictor variable.}
 \usage{
 calc_nb_ratioci(nbObj = NULL, ...)
+
+\method{calc_nb_ratioci}{default}(nbObj = NULL, nbCoefs, nbVcov, predVar,
+  adjustTo = NULL, df, alpha = 0.05)
 
 \method{calc_nb_ratioci}{mira}(nbObj, predVar, adjustTo = NULL, df,
   alpha = 0.05)
@@ -16,7 +20,11 @@ calc_nb_ratioci(nbObj = NULL, ...)
   alpha = 0.05)
 }
 \arguments{
-\item{nbObj}{Model fit of class glm.nb, or `mice::mira` object fit using glm.nb.}
+\item{nbObj}{Model fit of class glm.nb, or mice::mira object fit using glm.nb.}
+
+\item{nbCoefs}{Vector of coefficients for a glm.nb model.}
+
+\item{nbVcov}{Variance-covariance matrix for a glm.nb model.}
 
 \item{predVar}{Character string; name of main predictor variable.}
 
@@ -27,10 +35,6 @@ calc_nb_ratioci(nbObj = NULL, ...)
 applicable.}
 
 \item{alpha}{Alpha level for confidence limits. Defaults to 0.05.}
-
-\item{nbCoefs}{Vector of coefficients for a glm.nb model.}
-
-\item{nbVcov}{Variance-covariance matrix for a glm.nb model.}
 }
 \value{
 `data.frame` with one row, containing columns for point estimate, confidence limits, and
@@ -39,6 +43,18 @@ reference and comparison values used.
 \description{
 Currently doesn't handle interaction terms or categorical predVars.
 }
+\section{Methods (by class)}{
+\itemize{
+\item \code{default}: Method used when passing coefficients and variance-covariance matrix,
+vs original model fit
+
+Default method uses given coefficients and variance-covariance matrix. Intended use cases include
+bootstrapped negative binomial models.
+
+\item \code{mira}: Method for glm.nb models fit with mice objects.
+
+\item \code{negbin}: Method for glm.nb models (no imputation).
+}}
 \examples{
 
 ## Create data frame
@@ -50,6 +66,19 @@ df <- data.frame(y = round(rexp(n = 100, rate = 0.5)),
 mymod <- MASS::glm.nb(y ~ v1 * v2, data = df)
 
 calc_nb_ratioci(mymod, predVar = 'v1', df = df)
+
+
+## Create data frame
+df <- data.frame(y = round(rexp(n = 100, rate = 0.5)),
+                 v1 = sample(1:5, size = 100, replace = TRUE),
+                 v2 = rnorm(n = 100))
+
+## Fit negative binomial model
+mymod <- MASS::glm.nb(y ~ v1 * v2, data = df)
+mycoefs <- coef(mymod)
+myvcov <- vcov(mymod)
+
+calc_nb_ratioci(nbCoefs = mycoefs, nbVcov = myvcov, predVar = 'v1', df = df)
 
 
 ## Create data frame
@@ -80,6 +109,8 @@ calc_nb_ratioci(mymod, predVar = 'v1', df = df)
 \seealso{
 \code{\link[MASS]{glm.nb}}; \code{\link[mice]{mice}}, \code{\link[mice]{pool}};
 \code{\link[Hmisc]{rcspline.eval}} for nonlinear terms.
+
+\code{\link[MASS]{glm.nb}}; \code{\link[Hmisc]{rcspline.eval}} for nonlinear terms.
 
 \code{\link[MASS]{glm.nb}}; \code{\link[mice]{mice}} \code{\link[Hmisc]{rcspline.eval}}
 for nonlinear terms.

@@ -3,7 +3,7 @@
 #'
 #' Currently doesn't handle interaction terms or categorical predVars.
 #'
-#' @param nbObj Model fit of class glm.nb, or `mice::mira` object fit using glm.nb.
+#' @param nbObj Model fit of class glm.nb, or mice::mira object fit using glm.nb.
 #' @param nbCoefs Vector of coefficients for a glm.nb model.
 #' @param nbVcov Variance-covariance matrix for a glm.nb model.
 #' @param predVar Character string; name of main predictor variable.
@@ -40,7 +40,8 @@
 
 calc_nb_ratioci <- function(nbObj = NULL, ...){ UseMethod("calc_nb_ratioci2", nbObj) }
 
-#' @rdname calc_nb_ratioci
+#' @describeIn calc_nb_ratioci Method used when passing coefficients and variance-covariance matrix,
+#' vs original model fit
 #'
 #' Default method uses given coefficients and variance-covariance matrix. Intended use cases include
 #' bootstrapped negative binomial models.
@@ -154,7 +155,7 @@ calc_nb_ratioci.default <- function(nbObj = NULL,
            'ref.val' = adjustTo[1], 'comp.val' = adjustTo[2]))
 }
 
-#' @rdname calc_nb_ratioci
+#' @describeIn calc_nb_ratioci Method for glm.nb models fit with mice objects.
 #' @importFrom MASS glm.nb
 #' @import mice
 #'
@@ -252,7 +253,7 @@ calc_nb_ratioci.mira <- function(nbObj,
            'ref.val' = adjustTo[1], 'comp.val' = adjustTo[2]))
 }
 
-#' @rdname calc_nb_ratioci
+#' @describeIn calc_nb_ratioci Method for glm.nb models (no imputation).
 #' @importFrom MASS glm.nb
 #'
 #' @export
