@@ -175,7 +175,7 @@ calc_nb_ratioci.default <- function(nbObj = NULL,
 #' mids.df <- mice(df)
 #'
 #' ## Fit negative binomial model
-#' mymod <- with(mids.df, glm.nb(y ~ v1 * v2))
+#' mymod <- with(mids.df, MASS::glm.nb(y ~ v1 * v2))
 #'
 #' calc_nb_ratioci(mymod, predVar = 'v1', df = df)
 #'

@@ -90,7 +90,7 @@ df <- data.frame(y = round(rexp(n = 100, rate = 0.5)),
 mids.df <- mice(df)
 
 ## Fit negative binomial model
-mymod <- with(mids.df, glm.nb(y ~ v1 * v2))
+mymod <- with(mids.df, MASS::glm.nb(y ~ v1 * v2))
 
 calc_nb_ratioci(mymod, predVar = 'v1', df = df)
 
