@@ -17,7 +17,8 @@ A package of helper functions I wrote for my own frequent use. I hope they help 
 * Related to negative binomial regression:
     * `calc_nb_counts()`: For a `glm.nb` model fit, calculates predicted counts and CIs for each row in a supplied design matrix.
     * `calc_nb_ratioci()`: For a `glm.nb` model fit, calculates incidence rate ratio and CI for a
-specified continuous predictor variable and comparison (eg, 75th vs 25th percentile).
+specified continuous predictor variable and comparison (eg, 75th vs 25th percentile) or all levels
+of a specified categorical predictor. (Currently does not handle interaction terms.)
 * Formatting:
     * `rndformat()`: Rounds and formats a numeric value to the same number of decimal places to give
     a cleaner look.
