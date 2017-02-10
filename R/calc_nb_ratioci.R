@@ -1,20 +1,27 @@
 #' Calculate incidence rate ratio and confidence limits from a negative binomial regression
-#' model for a given comparison in a continuous predictor variable.
+#' model
 #'
-#' Currently doesn't handle interaction terms or categorical predVars.
+#' The most common way to express incidence rate ratios is simply exp(beta), representing a one-unit
+#' increase in the covariate value; however, in the case of continuous covariates, this is often not
+#' a practically meaningful difference (one year of age among adults, eg, or a one-unit change in
+#' mean arterial pressure). This function allows you to specify a clinically meaningful comparison
+#' in the case of continuous covariates, defaulting to the 75th vs the 25th percentiles of values in
+#' the data frame specified.
+#'
+#' Currently does not handle interaction terms.
 #'
 #' @param nbObj Model fit of class glm.nb, or mice::mira object fit using glm.nb.
-#' @param nbCoefs Vector of coefficients for a glm.nb model.
-#' @param nbVcov Variance-covariance matrix for a glm.nb model.
+#' @param nbCoefs Vector of coefficients from a glm.nb.
+#' @param nbVcov Variance-covariance matrix from a glm.nb fit.
 #' @param predVar Character string; name of main predictor variable.
-#' @param adjustTo Numeric vector of length 2; values to adjust `predVar` to. Defaults to `c(25th,
-#' 75th percentiles)`.
-#' @param df Data frame used to get defaults for `adjustTo` and to calculate nonlinear terms if
-#' applicable.
+#' @param adjustTo Numeric vector of length 2; values to adjust predVar to if predVar is continuous.
+#' Defaults to c(25th, 75th percentiles).
+#' @param df Data frame used to determine type of predVar, get defaults for adjustTo and to
+#' calculate nonlinear terms if applicable.
 #' @param alpha Alpha level for confidence limits. Defaults to 0.05.
 #'
-#' @return `data.frame` with one row, containing columns for point estimate, confidence limits, and
-#' reference and comparison values used.
+#' @return matrix with one row per comparison, containing columns for point estimate, confidence
+#' limits, and reference and comparison levels used.
 #'
 #' @importFrom MASS glm.nb
 #' @import mice
@@ -102,57 +109,94 @@ calc_nb_ratioci.default <- function(nbObj = NULL,
   modcoefs <- nbCoefs
   modvcov <- nbVcov
 
-  ## How many nonlinear terms does var have in the model?
-  n.terms <- length(unique(grep(paste0(predVar, "'*$"), names(modcoefs), value = TRUE)))
+  ## For continuous covariate
+  if(inherits(df[,predVar], "factor")){
+    ## Which coefficients reflect categories
+    use.coefs <- grep(paste0('^', predVar), names(modcoefs))
+    use.betas <- modcoefs[use.coefs]
 
-  ## Determine what values to adjust var terms to (by default, 75th and 25th percentiles of df)
-  if(is.null(adjustTo)){
-    ## Get percentiles for main term
-    adjustTo <- as.numeric(quantile(df[,predVar], probs = c(0.25, 0.75), na.rm = TRUE))
-  } else if(length(!is.na(as.numeric(adjustTo))) != 2){
-    stop('adjustTo must have exactly two non-missing numeric values')
-  }
+    ## Since each category only uses one coefficient, only need the variance, not the covariance
+    use.vcov <- diag(modvcov)[use.coefs]
 
-  ## If variable is linear, adjustTo = 2x1 matrix
-  if(n.terms == 1){
-    adjust.matrix <- matrix(adjustTo, ncol = 1)
-    ## Otherwise, adjustTo = 2xn.terms matrix
+    ## beta * xvals is just beta (each X is 1)
+    irrvar.logor <- use.betas
+    irrvar.or <- exp(irrvar.logor)
+
+    ## Calculate SE
+    irrvar.se <- sqrt(use.vcov)
+
+    ## Calculate confidence limits
+    critval <- 1 - alpha / 2
+
+    irrvar.lcl <- exp(irrvar.logor - qnorm(critval)*irrvar.se)
+    irrvar.ucl <- exp(irrvar.logor + qnorm(critval)*irrvar.se)
+
+    ## Combine point estimate(s), confidence limits, reference (=1 for all) and comparison values
+    ## into matrix
+    irr.results <- cbind(irrvar.or, irrvar.lcl, irrvar.ucl,
+                         rep(1, length(irrvar.or)),
+                         as.numeric(gsub(predVar, '', names(modcoefs[use.coefs]), fixed = TRUE)))
+    rownames(irr.results) <- NULL
+    colnames(irr.results) <- c('pointest', 'lcl', 'ucl', 'ref.val', 'comp.val')
+
   } else{
-    use.knots <- Hmisc::rcspline.eval(df[,predVar], nk = n.terms + 1, knots.only = TRUE)
-    adjust.matrix <- as.matrix(Hmisc::rcspline.eval(adjustTo, knots = use.knots, inclx = TRUE))
+    ## How many nonlinear terms does var have in the model?
+    n.nlterms <- length(unique(grep(paste0(predVar, "'*$"), names(modcoefs), value = TRUE)))
+
+    ## Determine what values to adjust var terms to (by default, 75th and 25th percentiles of df)
+    if(is.null(adjustTo)){
+      ## Get percentiles for main term
+      adjustTo <- as.numeric(quantile(df[,predVar], probs = c(0.25, 0.75), na.rm = TRUE))
+    } else if(length(!is.na(as.numeric(adjustTo))) != 2){
+      stop('adjustTo must have exactly two non-missing numeric values')
+    }
+
+    ## If variable is linear, adjustTo = 2x1 matrix
+    if(n.nlterms == 1){
+      adjust.matrix <- matrix(adjustTo, ncol = 1)
+      ## Otherwise, adjustTo = 2xn.nlterms matrix
+    } else{
+      use.knots <- Hmisc::rcspline.eval(df[,predVar], nk = n.nlterms + 1, knots.only = TRUE)
+      adjust.matrix <- as.matrix(Hmisc::rcspline.eval(adjustTo, knots = use.knots, inclx = TRUE))
+    }
+
+    ## Calculate differences in adjustment values - this is what will be multiplied by coefficients
+    adjust.diffs <- adjust.matrix[2,] - adjust.matrix[1,]
+    names(adjust.diffs) <- paste0(predVar,
+                                  unlist(lapply(1:n.nlterms, FUN = function(k){
+                                    paste(rep("'", k - 1), collapse = '') })))
+
+    ## Which coefficients do we need to use?
+    use.coefs <- grep(paste0(predVar, "'*$"), names(modcoefs))
+    use.betas <- modcoefs[use.coefs]
+
+    ## Get vcov matrix for involved components
+    use.vcov <- modvcov[use.coefs, use.coefs]
+
+    ## Calculate each component of linear predictor: beta * xvals
+    beta.x <- unlist(lapply(1:length(use.betas), FUN = function(b){
+      prod(c(use.betas[b], adjust.diffs[b]))
+    }))
+
+    irrvar.logor <- sum(beta.x)
+    irrvar.or <- exp(irrvar.logor)
+
+    ## Calculate SE
+    irrvar.se <- sqrt(adjust.diffs %*% use.vcov %*% adjust.diffs)
+
+    critval <- 1 - alpha / 2
+
+    irrvar.lcl <- exp(irrvar.logor - qnorm(critval)*irrvar.se)
+    irrvar.ucl <- exp(irrvar.logor + qnorm(critval)*irrvar.se)
+
+    ## Combine point estimate, confidence limits, reference and comparison values into matrix
+    irr.results <- cbind(irrvar.or, irrvar.lcl, irrvar.ucl, adjustTo[1], adjustTo[2])
+    rownames(irr.results) <- NULL
+    colnames(irr.results) <- c('pointest', 'lcl', 'ucl', 'ref.val', 'comp.val')
+
   }
 
-  ## Calculate differences in adjustment values - this is what will be multiplied by coefficients
-  adjust.diffs <- adjust.matrix[2,] - adjust.matrix[1,]
-  names(adjust.diffs) <- paste0(predVar,
-                                unlist(lapply(1:n.terms, FUN = function(k){
-                                  paste(rep("'", k - 1), collapse = '') })))
-
-  ## Which coefficients do we need to use?
-  use.coefs <- grep(paste0(predVar, "'*$"), names(modcoefs))
-  use.betas <- modcoefs[use.coefs]
-
-  ## Get vcov matrix for involved components
-  use.vcov <- modvcov[use.coefs, use.coefs]
-
-  ## Calculate each component of linear predictor: beta * xvals
-  beta.x <- unlist(lapply(1:length(use.betas), FUN = function(b){
-    prod(c(use.betas[b], adjust.diffs[b]))
-  }))
-
-  irrvar.logor <- sum(beta.x)
-  irrvar.or <- exp(irrvar.logor)
-
-  ## Calculate SE
-  irrvar.se <- sqrt(adjust.diffs %*% use.vcov %*% adjust.diffs)
-
-  critval <- 1 - alpha / 2
-
-  irrvar.lcl <- exp(irrvar.logor - qnorm(critval)*irrvar.se)
-  irrvar.ucl <- exp(irrvar.logor + qnorm(critval)*irrvar.se)
-
-  return(c('pointest' = irrvar.or, 'lcl' = irrvar.lcl, 'ucl' = irrvar.ucl,
-           'ref.val' = adjustTo[1], 'comp.val' = adjustTo[2]))
+  return(irr.results)
 }
 
 #' @describeIn calc_nb_ratioci Method for glm.nb models fit with mice objects.
@@ -200,57 +244,94 @@ calc_nb_ratioci.mira <- function(nbObj,
   modcoefs <- pool(nbObj)$qbar
   modvcov <- pool(nbObj)$t
 
-  ## How many nonlinear terms does var have in the model?
-  n.terms <- length(unique(grep(paste0(predVar, "'*$"), names(modcoefs), value = TRUE)))
+  ## For continuous covariate
+  if(inherits(df[,predVar], "factor")){
+    ## Which coefficients reflect categories
+    use.coefs <- grep(paste0('^', predVar), names(modcoefs))
+    use.betas <- modcoefs[use.coefs]
 
-  ## Determine what values to adjust var terms to (by default, 75th and 25th percentiles of df)
-  if(is.null(adjustTo)){
-    ## Get percentiles for main term
-    adjustTo <- as.numeric(quantile(df[,predVar], probs = c(0.25, 0.75), na.rm = TRUE))
-  } else if(length(!is.na(as.numeric(adjustTo))) != 2){
-    stop('adjustTo must have exactly two non-missing numeric values')
-  }
+    ## Since each category only uses one coefficient, only need the variance, not the covariance
+    use.vcov <- diag(modvcov)[use.coefs]
 
-  ## If variable is linear, adjustTo = 2x1 matrix
-  if(n.terms == 1){
-    adjust.matrix <- matrix(adjustTo, ncol = 1)
-    ## Otherwise, adjustTo = 2xn.terms matrix
+    ## beta * xvals is just beta (each X is 1)
+    irrvar.logor <- use.betas
+    irrvar.or <- exp(irrvar.logor)
+
+    ## Calculate SE
+    irrvar.se <- sqrt(use.vcov)
+
+    ## Calculate confidence limits
+    critval <- 1 - alpha / 2
+
+    irrvar.lcl <- exp(irrvar.logor - qnorm(critval)*irrvar.se)
+    irrvar.ucl <- exp(irrvar.logor + qnorm(critval)*irrvar.se)
+
+    ## Combine point estimate(s), confidence limits, reference (=1 for all) and comparison values
+    ## into matrix
+    irr.results <- cbind(irrvar.or, irrvar.lcl, irrvar.ucl,
+                         rep(1, length(irrvar.or)),
+                         as.numeric(gsub(predVar, '', names(modcoefs[use.coefs]), fixed = TRUE)))
+    rownames(irr.results) <- NULL
+    colnames(irr.results) <- c('pointest', 'lcl', 'ucl', 'ref.val', 'comp.val')
+
   } else{
-    use.knots <- Hmisc::rcspline.eval(df[,predVar], nk = n.terms + 1, knots.only = TRUE)
-    adjust.matrix <- as.matrix(Hmisc::rcspline.eval(adjustTo, knots = use.knots, inclx = TRUE))
+    ## How many nonlinear terms does var have in the model?
+    n.nlterms <- length(unique(grep(paste0(predVar, "'*$"), names(modcoefs), value = TRUE)))
+
+    ## Determine what values to adjust var terms to (by default, 75th and 25th percentiles of df)
+    if(is.null(adjustTo)){
+      ## Get percentiles for main term
+      adjustTo <- as.numeric(quantile(df[,predVar], probs = c(0.25, 0.75), na.rm = TRUE))
+    } else if(length(!is.na(as.numeric(adjustTo))) != 2){
+      stop('adjustTo must have exactly two non-missing numeric values')
+    }
+
+    ## If variable is linear, adjustTo = 2x1 matrix
+    if(n.nlterms == 1){
+      adjust.matrix <- matrix(adjustTo, ncol = 1)
+      ## Otherwise, adjustTo = 2xn.nlterms matrix
+    } else{
+      use.knots <- Hmisc::rcspline.eval(df[,predVar], nk = n.nlterms + 1, knots.only = TRUE)
+      adjust.matrix <- as.matrix(Hmisc::rcspline.eval(adjustTo, knots = use.knots, inclx = TRUE))
+    }
+
+    ## Calculate differences in adjustment values - this is what will be multiplied by coefficients
+    adjust.diffs <- adjust.matrix[2,] - adjust.matrix[1,]
+    names(adjust.diffs) <- paste0(predVar,
+                                  unlist(lapply(1:n.nlterms, FUN = function(k){
+                                    paste(rep("'", k - 1), collapse = '') })))
+
+    ## Which coefficients do we need to use?
+    use.coefs <- grep(paste0(predVar, "'*$"), names(modcoefs))
+    use.betas <- modcoefs[use.coefs]
+
+    ## Get vcov matrix for involved components
+    use.vcov <- modvcov[use.coefs, use.coefs]
+
+    ## Calculate each component of linear predictor: beta * xvals
+    beta.x <- unlist(lapply(1:length(use.betas), FUN = function(b){
+      prod(c(use.betas[b], adjust.diffs[b]))
+    }))
+
+    irrvar.logor <- sum(beta.x)
+    irrvar.or <- exp(irrvar.logor)
+
+    ## Calculate SE
+    irrvar.se <- sqrt(adjust.diffs %*% use.vcov %*% adjust.diffs)
+
+    critval <- 1 - alpha / 2
+
+    irrvar.lcl <- exp(irrvar.logor - qnorm(critval)*irrvar.se)
+    irrvar.ucl <- exp(irrvar.logor + qnorm(critval)*irrvar.se)
+
+    ## Combine point estimate, confidence limits, reference and comparison values into matrix
+    irr.results <- cbind(irrvar.or, irrvar.lcl, irrvar.ucl, adjustTo[1], adjustTo[2])
+    rownames(irr.results) <- NULL
+    colnames(irr.results) <- c('pointest', 'lcl', 'ucl', 'ref.val', 'comp.val')
+
   }
 
-  ## Calculate differences in adjustment values - this is what will be multiplied by coefficients
-  adjust.diffs <- adjust.matrix[2,] - adjust.matrix[1,]
-  names(adjust.diffs) <- paste0(predVar,
-                                unlist(lapply(1:n.terms, FUN = function(k){
-                                  paste(rep("'", k - 1), collapse = '') })))
-
-  ## Which coefficients do we need to use?
-  use.coefs <- grep(paste0(predVar, "'*$"), names(modcoefs))
-  use.betas <- modcoefs[use.coefs]
-
-  ## Get vcov matrix for involved components
-  use.vcov <- modvcov[use.coefs, use.coefs]
-
-  ## Calculate each component of linear predictor: beta * xvals
-  beta.x <- unlist(lapply(1:length(use.betas), FUN = function(b){
-    prod(c(use.betas[b], adjust.diffs[b]))
-  }))
-
-  irrvar.logor <- sum(beta.x)
-  irrvar.or <- exp(irrvar.logor)
-
-  ## Calculate SE
-  irrvar.se <- sqrt(adjust.diffs %*% use.vcov %*% adjust.diffs)
-
-  critval <- 1 - alpha / 2
-
-  irrvar.lcl <- exp(irrvar.logor - qnorm(critval)*irrvar.se)
-  irrvar.ucl <- exp(irrvar.logor + qnorm(critval)*irrvar.se)
-
-  return(c('pointest' = irrvar.or, 'lcl' = irrvar.lcl, 'ucl' = irrvar.ucl,
-           'ref.val' = adjustTo[1], 'comp.val' = adjustTo[2]))
+  return(irr.results)
 }
 
 #' @describeIn calc_nb_ratioci Method for glm.nb models (no imputation).
@@ -287,55 +368,92 @@ calc_nb_ratioci.negbin <- function(nbObj,
   modcoefs <- coef(nbObj)
   modvcov <- vcov(nbObj)
 
-  ## How many nonlinear terms does var have in the model?
-  n.terms <- length(unique(grep(paste0(predVar, "'*$"), names(modcoefs), value = TRUE)))
+  ## For continuous covariate
+  if(inherits(df[,predVar], "factor")){
+    ## Which coefficients reflect categories
+    use.coefs <- grep(paste0('^', predVar), names(modcoefs))
+    use.betas <- modcoefs[use.coefs]
 
-  ## Determine what values to adjust var terms to (by default, 75th and 25th percentiles of df)
-  if(is.null(adjustTo)){
-    ## Get percentiles for main term
-    adjustTo <- as.numeric(quantile(df[,predVar], probs = c(0.25, 0.75), na.rm = TRUE))
-  } else if(length(!is.na(as.numeric(adjustTo))) != 2){
-    stop('adjustTo must have exactly two non-missing numeric values')
-  }
+    ## Since each category only uses one coefficient, only need the variance, not the covariance
+    use.vcov <- diag(modvcov)[use.coefs]
 
-  ## If variable is linear, adjustTo = 2x1 matrix
-  if(n.terms == 1){
-    adjust.matrix <- matrix(adjustTo, ncol = 1)
-    ## Otherwise, adjustTo = 2xn.terms matrix
+    ## beta * xvals is just beta (each X is 1)
+    irrvar.logor <- use.betas
+    irrvar.or <- exp(irrvar.logor)
+
+    ## Calculate SE
+    irrvar.se <- sqrt(use.vcov)
+
+    ## Calculate confidence limits
+    critval <- 1 - alpha / 2
+
+    irrvar.lcl <- exp(irrvar.logor - qnorm(critval)*irrvar.se)
+    irrvar.ucl <- exp(irrvar.logor + qnorm(critval)*irrvar.se)
+
+    ## Combine point estimate(s), confidence limits, reference (=1 for all) and comparison values
+    ## into matrix
+    irr.results <- cbind(irrvar.or, irrvar.lcl, irrvar.ucl,
+                         rep(1, length(irrvar.or)),
+                         as.numeric(gsub(predVar, '', names(modcoefs[use.coefs]), fixed = TRUE)))
+    rownames(irr.results) <- NULL
+    colnames(irr.results) <- c('pointest', 'lcl', 'ucl', 'ref.val', 'comp.val')
+
   } else{
-    use.knots <- Hmisc::rcspline.eval(df[,predVar], nk = n.terms + 1, knots.only = TRUE)
-    adjust.matrix <- as.matrix(Hmisc::rcspline.eval(adjustTo, knots = use.knots, inclx = TRUE))
+    ## How many nonlinear terms does var have in the model?
+    n.nlterms <- length(unique(grep(paste0(predVar, "'*$"), names(modcoefs), value = TRUE)))
+
+    ## Determine what values to adjust var terms to (by default, 75th and 25th percentiles of df)
+    if(is.null(adjustTo)){
+      ## Get percentiles for main term
+      adjustTo <- as.numeric(quantile(df[,predVar], probs = c(0.25, 0.75), na.rm = TRUE))
+    } else if(length(!is.na(as.numeric(adjustTo))) != 2){
+      stop('adjustTo must have exactly two non-missing numeric values')
+    }
+
+    ## If variable is linear, adjustTo = 2x1 matrix
+    if(n.nlterms == 1){
+      adjust.matrix <- matrix(adjustTo, ncol = 1)
+      ## Otherwise, adjustTo = 2xn.nlterms matrix
+    } else{
+      use.knots <- Hmisc::rcspline.eval(df[,predVar], nk = n.nlterms + 1, knots.only = TRUE)
+      adjust.matrix <- as.matrix(Hmisc::rcspline.eval(adjustTo, knots = use.knots, inclx = TRUE))
+    }
+
+    ## Calculate differences in adjustment values - this is what will be multiplied by coefficients
+    adjust.diffs <- adjust.matrix[2,] - adjust.matrix[1,]
+    names(adjust.diffs) <- paste0(predVar,
+                                  unlist(lapply(1:n.nlterms, FUN = function(k){
+                                    paste(rep("'", k - 1), collapse = '') })))
+
+    ## Which coefficients do we need to use?
+    use.coefs <- grep(paste0(predVar, "'*$"), names(modcoefs))
+    use.betas <- modcoefs[use.coefs]
+
+    ## Get vcov matrix for involved components
+    use.vcov <- modvcov[use.coefs, use.coefs]
+
+    ## Calculate each component of linear predictor: beta * xvals
+    beta.x <- unlist(lapply(1:length(use.betas), FUN = function(b){
+      prod(c(use.betas[b], adjust.diffs[b]))
+    }))
+
+    irrvar.logor <- sum(beta.x)
+    irrvar.or <- exp(irrvar.logor)
+
+    ## Calculate SE
+    irrvar.se <- sqrt(adjust.diffs %*% use.vcov %*% adjust.diffs)
+
+    critval <- 1 - alpha / 2
+
+    irrvar.lcl <- exp(irrvar.logor - qnorm(critval)*irrvar.se)
+    irrvar.ucl <- exp(irrvar.logor + qnorm(critval)*irrvar.se)
+
+    ## Combine point estimate, confidence limits, reference and comparison values into matrix
+    irr.results <- cbind(irrvar.or, irrvar.lcl, irrvar.ucl, adjustTo[1], adjustTo[2])
+    rownames(irr.results) <- NULL
+    colnames(irr.results) <- c('pointest', 'lcl', 'ucl', 'ref.val', 'comp.val')
+
   }
 
-  ## Calculate differences in adjustment values - this is what will be multiplied by coefficients
-  adjust.diffs <- adjust.matrix[2,] - adjust.matrix[1,]
-  names(adjust.diffs) <- paste0(predVar,
-                                unlist(lapply(1:n.terms, FUN = function(k){
-                                  paste(rep("'", k - 1), collapse = '') })))
-
-  ## Which coefficients do we need to use?
-  use.coefs <- grep(paste0(predVar, "'*$"), names(modcoefs))
-  use.betas <- modcoefs[use.coefs]
-
-  ## Get vcov matrix for involved components
-  use.vcov <- modvcov[use.coefs, use.coefs]
-
-  ## Calculate each component of linear predictor: beta * xvals
-  beta.x <- unlist(lapply(1:length(use.betas), FUN = function(b){
-    prod(c(use.betas[b], adjust.diffs[b]))
-  }))
-
-  irrvar.logor <- sum(beta.x)
-  irrvar.or <- exp(irrvar.logor)
-
-  ## Calculate SE
-  irrvar.se <- sqrt(adjust.diffs %*% use.vcov %*% adjust.diffs)
-
-  critval <- 1 - alpha / 2
-
-  irrvar.lcl <- exp(irrvar.logor - qnorm(critval)*irrvar.se)
-  irrvar.ucl <- exp(irrvar.logor + qnorm(critval)*irrvar.se)
-
-  return(c('pointest' = irrvar.or, 'lcl' = irrvar.lcl, 'ucl' = irrvar.ucl,
-           'ref.val' = adjustTo[1], 'comp.val' = adjustTo[2]))
+  return(irr.results)
 }

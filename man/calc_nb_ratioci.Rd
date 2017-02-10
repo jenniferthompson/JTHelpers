@@ -6,7 +6,7 @@
 \alias{calc_nb_ratioci.mira}
 \alias{calc_nb_ratioci.negbin}
 \title{Calculate incidence rate ratio and confidence limits from a negative binomial regression
-model for a given comparison in a continuous predictor variable.}
+model}
 \usage{
 calc_nb_ratioci(nbObj = NULL, ...)
 
@@ -22,26 +22,34 @@ calc_nb_ratioci(nbObj = NULL, ...)
 \arguments{
 \item{nbObj}{Model fit of class glm.nb, or mice::mira object fit using glm.nb.}
 
-\item{nbCoefs}{Vector of coefficients for a glm.nb model.}
+\item{nbCoefs}{Vector of coefficients from a glm.nb.}
 
-\item{nbVcov}{Variance-covariance matrix for a glm.nb model.}
+\item{nbVcov}{Variance-covariance matrix from a glm.nb fit.}
 
 \item{predVar}{Character string; name of main predictor variable.}
 
-\item{adjustTo}{Numeric vector of length 2; values to adjust `predVar` to. Defaults to `c(25th,
-75th percentiles)`.}
+\item{adjustTo}{Numeric vector of length 2; values to adjust predVar to if predVar is continuous.
+Defaults to c(25th, 75th percentiles).}
 
-\item{df}{Data frame used to get defaults for `adjustTo` and to calculate nonlinear terms if
-applicable.}
+\item{df}{Data frame used to determine type of predVar, get defaults for adjustTo and to
+calculate nonlinear terms if applicable.}
 
 \item{alpha}{Alpha level for confidence limits. Defaults to 0.05.}
 }
 \value{
-`data.frame` with one row, containing columns for point estimate, confidence limits, and
-reference and comparison values used.
+matrix with one row per comparison, containing columns for point estimate, confidence
+limits, and reference and comparison levels used.
 }
 \description{
-Currently doesn't handle interaction terms or categorical predVars.
+The most common way to express incidence rate ratios is simply exp(beta), representing a one-unit
+increase in the covariate value; however, in the case of continuous covariates, this is often not
+a practically meaningful difference (one year of age among adults, eg, or a one-unit change in
+mean arterial pressure). This function allows you to specify a clinically meaningful comparison
+in the case of continuous covariates, defaulting to the 75th vs the 25th percentiles of values in
+the data frame specified.
+}
+\details{
+Currently does not handle interaction terms.
 }
 \section{Methods (by class)}{
 \itemize{
