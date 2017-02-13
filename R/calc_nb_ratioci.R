@@ -45,7 +45,7 @@
 #'
 #' @name calc_nb_ratioci
 
-calc_nb_ratioci <- function(nbObj = NULL, ...){ UseMethod("calc_nb_ratioci2", nbObj) }
+calc_nb_ratioci <- function(nbObj = NULL, ...){ UseMethod("calc_nb_ratioci", nbObj) }
 
 #' @describeIn calc_nb_ratioci Method used when passing coefficients and variance-covariance matrix,
 #' vs original model fit
