@@ -1,4 +1,5 @@
-#' Likelihood ratio p-values for full model vs model with one term removed
+#' Likelihood ratio p-values for full model vs model with one term (or consecutive terms) removed
+#'
 #' Runs model without `removeTerm` and performs likelihood ratio test for full model vs nested model.
 #' `function(variable)` - eg, `rcs(age, 3)` - is considered one term, as are all levels of a
 #' categorical variable.
@@ -9,26 +10,20 @@
 #'
 #' @importFrom lmtest lrtest
 #'
-#' @return Numeric value; p-value from `lrtest()` or `pool.compare()`.
+#' @return List with following values from lrtest() or pool.compare(): test degrees of freedom,
+#' X^2^ value, and p-value.
 #'
 #' @export
 #'
-#' @seealso \code{model_lrpval.default, model_lrpval.mira}.
+#' @seealso \code{lrtest_removeTerm.default, lrtest_removeTerm.mira}.
 
-model_lrpval <- function(orgModel, removeTerm, ...) UseMethod("model_lrpval", orgModel)
+lrtest_removeTerm <- function(orgModel, removeTerm, ...) UseMethod("lrtest_removeTerm", orgModel)
 
-#' Likelihood ratio p-values for full model vs model with one term removed
-#'
-#' Runs model without `removeTerm` and performs likelihood ratio test for full model vs nested model.
-#' `function(variable)` - eg, `rcs(age, 3)` - is considered one term, as are all levels of a
-#' categorical variable.
-#'
+#' @describeIn lrtest_removeTerm Default method.
 #' @param orgModel Model object containing full model.
 #' @param removeTerm Character string of term(s) to be removed.
 #'
 #' @importFrom lmtest lrtest
-#'
-#' @return Numeric value; p-value from `lrtest()`.
 #'
 #' @export
 #'
@@ -40,12 +35,12 @@ model_lrpval <- function(orgModel, removeTerm, ...) UseMethod("model_lrpval", or
 #' fullModel <- lm(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width, data = iris)
 #'
 #' ## What about just the effect of Petal.Length?
-#' model_lrpval(fullModel, 'Petal.Length')
+#' lrtest_removeTerm(fullModel, 'Petal.Length')
 #'
 #' ## What about the effect of both Petal variables?
-#' model_lrpval(fullModel, 'Petal.Length + Petal.Width')
+#' lrtest_removeTerm(fullModel, 'Petal.Length + Petal.Width')
 #'
-model_lrpval.default <- function(orgModel, removeTerm){
+lrtest_removeTerm.default <- function(orgModel, removeTerm){
   modcall <- as.character(orgModel$call)
 
   if(length(grep(removeTerm, modcall[2], fixed = TRUE)) == 0){
@@ -62,22 +57,21 @@ model_lrpval.default <- function(orgModel, removeTerm){
                           modcall[3])
 
   newModel <- eval(parse(text = newform))
-  return(as.data.frame(lmtest::lrtest(orgModel, newModel))[2, 'Pr(>Chisq)'])
+
+  lrtestObj <- lmtest::lrtest(orgModel, newModel)
+
+  return(list("df" = lrtestObj[1, 1] - lrtestObj[1, 2],
+              "chisq" = lrtestObj[2, 'Chisq'],
+              "pvalue" = lrtestObj[2, 'Pr(>Chisq)']))
 }
 
-#' Likelihood ratio p-values for full model vs nested model, both fit with mice objects
-#'
-#' Runs model without `removeTerm` using a `mice` object and performs likelihood ratio test for full
-#' model vs nested model. `function(variable)` - eg, `rcs(age, 3)` - is considered one term, as are
-#' all levels of a categorical variable.
+#' @describeIn lrtest_removeTerm Method for models fit with the mice package.
 #'
 #' @param orgModel Model object containing full model.
 #' @param removeTerm Character string of term(s) to be removed.
 #' @param miceObjName Character string; name of `mice` object.
 #'
 #' @import mice
-#'
-#' @return Numeric value; p-value from `mice::pool.compare()`.
 #'
 #' @export
 #'
@@ -96,12 +90,12 @@ model_lrpval.default <- function(orgModel, removeTerm){
 #' fullModel <- with(iris_mice, lm(Sepal.Length ~ Sepal.Width + Petal.Length + Petal.Width))
 #'
 #' ## What about just the effect of Petal.Length?
-#' model_lrpval(fullModel, 'Petal.Length', 'iris_mice')
+#' lrtest_removeTerm(fullModel, 'Petal.Length', 'iris_mice')
 #'
 #' ## What about the effect of both Petal variables?
-#' model_lrpval(fullModel, 'Petal.Length + Petal.Width', 'iris_mice')
+#' lrtest_removeTerm(fullModel, 'Petal.Length + Petal.Width', 'iris_mice')
 
-model_lrpval.mira <- function(orgModel, removeTerm, miceObjName){
+lrtest_removeTerm.mira <- function(orgModel, removeTerm, miceObjName){
   ## Extract original call from orgModel
   modcall <- as.character(orgModel$analyses[[1]]$call)
 
@@ -134,5 +128,9 @@ model_lrpval.mira <- function(orgModel, removeTerm, miceObjName){
   ## Fit model without removeTerm
   newModel <- eval(parse(text = newmodcall))
 
-  pool.compare(orgModel, newModel, data = get(miceObjName), method = 'likelihood')$pvalue
+  lrtestObj <- pool.compare(orgModel, newModel, data = get(miceObjName), method = 'likelihood')
+
+  return(list("df" = lrtestObj$df1,
+              "chisq" = lrtestObj$Dm,
+              "pvalue" = lrtestObj$pvalue))
 }

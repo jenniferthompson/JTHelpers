@@ -38,4 +38,4 @@ Majority of this code was written by Zhiguo (Alex) Zhao with edits from Cole Bec
 knowledge it is not available in another package, so is here for my convenience.
 * `lm_diagnostics()`: Creates figures to check hetereoscedasticity and normality assumptions of a
 linear regression model.
-* `model_lrpval()`: Get p-value for a likelihood ratio test for an original model with `removeTerm` removed. Includes default method and method for `mira` objects created with the `mice` package.
+* `lrtest_removeTerm()`: Get degrees of freedom, X^2^ and p-value for a likelihood ratio test for an full model with `removeTerm` removed. Includes default method and method for `mira` objects created with the `mice` package.
