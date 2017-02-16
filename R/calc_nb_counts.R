@@ -4,7 +4,8 @@
 #' @param nbObj Model fit of class glm.nb, or mice::mira object fit using glm.nb.
 #' @param designMatrix Matrix of covariate values. Number of columns = number of coefficients in
 #' nbObj.
-#' @param predVar Character string; name of main predictor variable.
+#' @param predVar Character string; name of main predictor variable. Defaults to NULL, in which case
+#' predictor variable values will not be included in resulting data.frame.
 #' @param intVar Character string (optional); name of interacting variable. Defaults to NULL. If
 #' included, nothing changes except this column in designMatrix will also be included in the
 #' returned data.frame.
@@ -39,7 +40,7 @@
 
 calc_nb_counts <- function(nbObj,
                            designMatrix,
-                           predVar,
+                           predVar = NULL,
                            intVar = NULL){
 
   is.mice <- inherits(nbObj, 'mira')
@@ -64,10 +65,6 @@ calc_nb_counts <- function(nbObj,
     stop("Variables in nbObj are not in designMatrix", call. = FALSE)
   }
 
-  if(!(predVar %in% colnames(designMatrix))){
-    stop("Predictor variable name (predVar) not in column names of design matrix", call. = FALSE)
-  }
-
   designMatrix <- designMatrix[,coefnames]
 
   ## Calculate linear predictors and their SEs
@@ -84,11 +81,22 @@ calc_nb_counts <- function(nbObj,
   count.ucl <- exp(lp.ucl)
 
   ## Bind all results into data frame for plotting
-  xvalue <- designMatrix[,predVar]
-  if(!is.null(intVar)){
-    intvalue <- designMatrix[,intVar]
-    return(as.data.frame(cbind(xvalue, intvalue, lp, lp.se, count.pe, count.lcl, count.ucl)))
+  if(!is.null(predVar)){
+    if(!(predVar %in% colnames(designMatrix))){
+      stop("Predictor variable name (predVar) not in column names of design matrix", call. = FALSE)
+    }
+
+    ## Pull out predictor values (only works for now if predictor is linear and continuous)
+    xvalue <- designMatrix[,predVar]
+
+    ## If intVar is supplied, do the same for it; also only works if intVar is linear & continuous
+    if(!is.null(intVar)){
+      intvalue <- designMatrix[,intVar]
+      return(as.data.frame(cbind(xvalue, intvalue, lp, lp.se, count.pe, count.lcl, count.ucl)))
+    } else{
+      return(as.data.frame(cbind(xvalue, lp, lp.se, count.pe, count.lcl, count.ucl)))
+    }
   } else{
-    return(as.data.frame(cbind(xvalue, lp, lp.se, count.pe, count.lcl, count.ucl)))
+    return(as.data.frame(cbind(lp, lp.se, count.pe, count.lcl, count.ucl)))
   }
 }

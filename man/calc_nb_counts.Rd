@@ -5,7 +5,7 @@
 \title{Calculate predicted value and standard error of a negative binomial regression model for each
 row in a design matrix.}
 \usage{
-calc_nb_counts(nbObj, designMatrix, predVar, intVar = NULL)
+calc_nb_counts(nbObj, designMatrix, predVar = NULL, intVar = NULL)
 }
 \arguments{
 \item{nbObj}{Model fit of class glm.nb, or mice::mira object fit using glm.nb.}
@@ -13,7 +13,8 @@ calc_nb_counts(nbObj, designMatrix, predVar, intVar = NULL)
 \item{designMatrix}{Matrix of covariate values. Number of columns = number of coefficients in
 nbObj.}
 
-\item{predVar}{Character string; name of main predictor variable.}
+\item{predVar}{Character string; name of main predictor variable. Defaults to NULL, in which case
+predictor variable values will not be included in resulting data.frame.}
 
 \item{intVar}{Character string (optional); name of interacting variable. Defaults to NULL. If
 included, nothing changes except this column in designMatrix will also be included in the
