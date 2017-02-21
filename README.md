@@ -13,7 +13,7 @@ A package of helper functions I wrote for my own frequent use. I hope they help 
     often be used in conjunction with `lapply` or `purrr::map`/`purrr::pmap`.
     * `rms_po_assume()`: Creates figures to visually examine proportional odds assumption from an
     `lrm` model fit. Based on code and method outlined in Harrell's Regression Modeling Strategies
-    (2001).
+    (2001). Includes methods for `lrm()` model fits generated both directly from `lrm()` and from `fit.mult.impute()`.
 * Related to negative binomial regression:
     * `calc_nb_counts()`: For a `glm.nb` model fit, calculates predicted counts and CIs for each row in a supplied design matrix.
     * `calc_nb_ratioci()`: For a `glm.nb` model fit, calculates incidence rate ratio and CI for a
