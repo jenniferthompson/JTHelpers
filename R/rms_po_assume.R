@@ -42,7 +42,8 @@ rms_po_assume <- function(lrmObj = NULL, ...){ UseMethod("rms_po_assume", lrmObj
 
 #' @describeIn rms_po_assume Method for lrm() models fit with fit.mult.impute.
 #'
-#' @importFrom rms lrm fit.mult.impute
+#' @importFrom rms lrm
+#' @importFrom Hmisc fit.mult.impute
 #'
 #' @export
 #'
