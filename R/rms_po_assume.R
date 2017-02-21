@@ -42,6 +42,10 @@ rms_po_assume <- function(lrmObj = NULL, ...){ UseMethod("rms_po_assume", lrmObj
 
 #' @describeIn rms_po_assume Method for lrm() models fit with fit.mult.impute.
 #'
+#' @importFrom rms lrm fit.mult.impute
+#'
+#' @export
+#'
 rms_po_assume.fit.mult.impute <- function(lrmObj,
                                           cuts,
                                           plotVars = NULL,
@@ -102,6 +106,10 @@ rms_po_assume.fit.mult.impute <- function(lrmObj,
 }
 
 #' @describeIn rms_po_assume Method for lrm() model fits without imputation.
+#'
+#' @importFrom rms lrm
+#'
+#' @export
 #'
 rms_po_assume.default <- function(lrmObj,
                                   cuts,
