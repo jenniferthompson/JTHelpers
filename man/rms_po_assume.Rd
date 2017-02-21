@@ -2,9 +2,17 @@
 % Please edit documentation in R/rms_po_assume.R
 \name{rms_po_assume}
 \alias{rms_po_assume}
+\alias{rms_po_assume.default}
+\alias{rms_po_assume.fit.mult.impute}
 \title{Create figures to visually examine proportional odds assumption from an `lrm` model fit.}
 \usage{
-rms_po_assume(lrmObj, cuts, plotVars = NULL, mfrowAuto = FALSE, modelData)
+rms_po_assume(lrmObj = NULL, ...)
+
+\method{rms_po_assume}{fit.mult.impute}(lrmObj, cuts, plotVars = NULL,
+  mfrowAuto = FALSE, modelData, impObj)
+
+\method{rms_po_assume}{default}(lrmObj, cuts, plotVars = NULL,
+  mfrowAuto = FALSE, modelData)
 }
 \arguments{
 \item{cuts}{Numeric vector; sequence of points to cut outcome. Should not include lowest outcome
@@ -17,20 +25,36 @@ level.}
 \item{modelData}{Data.frame; data set used to fit original model. Used to fit logistic models
 with outcome dichotomized at each cut point.}
 
+\item{impObj}{aregImpute or mice object used to fit original model in fit.mult.impute.}
+
 \item{rmsObj}{Model fit of class `lrm`.}
 }
 \description{
 Based on code and strategy outlined in Frank Harrell's Regression Modeling Strategies (see
 citation below).
 }
+\section{Methods (by class)}{
+\itemize{
+\item \code{fit.mult.impute}: Method for lrm() models fit with fit.mult.impute.
+
+\item \code{default}: Method for lrm() model fits without imputation.
+}}
 \examples{
 
+## Regular lrm() model, no imputation
 df <- data.frame(ptclass = sample(1:4, size = 20, replace = TRUE),
                  v1 = rnorm(n = 20),
                  v2 = rnorm(mean = 5, sd = 1, n = 20))
 
 mymod <- lrm(ptclass ~ v1 + v2, data = df)
 rms_po_assume(mymod, cuts = 2:4, modelData = df)
+
+## Model using imputation
+df$v1[sample(1:nrow(df), size = 5)] <- NA
+
+aregdf <- aregImpute(~ ptclass + v1 + v2, nk = 0, data = df)
+mymodImp <- fit.mult.impute(ptclass ~ v1 + v2, fitter = lrm, xtrans = aregdf, data = df)
+rms_po_assume(mymodImp, cuts = 2:4, impObj = aregdf, modelData = df)
 
 }
 \seealso{
