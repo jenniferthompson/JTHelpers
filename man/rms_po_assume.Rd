@@ -9,10 +9,10 @@
 rms_po_assume(lrmObj = NULL, ...)
 
 \method{rms_po_assume}{fit.mult.impute}(lrmObj, cuts, plotVars = NULL,
-  mfrowAuto = FALSE, modelData, impObj)
+  mfrowAuto = FALSE, modelData, impObj, plotType = c("ggplot", "base"))
 
 \method{rms_po_assume}{default}(lrmObj, cuts, plotVars = NULL,
-  mfrowAuto = FALSE, modelData)
+  mfrowAuto = FALSE, modelData, plotType = c("ggplot", "base"))
 }
 \arguments{
 \item{cuts}{Numeric vector; sequence of points to cut outcome. Should not include lowest outcome

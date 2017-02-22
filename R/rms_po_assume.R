@@ -13,6 +13,9 @@
 #' @param impObj aregImpute or mice object used to fit original model in fit.mult.impute.
 #'
 #' @import rms
+#' @importFrom tidyr gather
+#' @importFrom dplyr select starts_with
+#' @import ggplot2
 #'
 #' @export
 #'
@@ -42,7 +45,6 @@ rms_po_assume <- function(lrmObj = NULL, ...){ UseMethod("rms_po_assume", lrmObj
 
 #' @describeIn rms_po_assume Method for lrm() models fit with fit.mult.impute.
 #'
-#' @importFrom rms lrm
 #' @importFrom Hmisc fit.mult.impute
 #'
 #' @export
@@ -52,7 +54,9 @@ rms_po_assume.fit.mult.impute <- function(lrmObj,
                                           plotVars = NULL,
                                           mfrowAuto = FALSE,
                                           modelData,
-                                          impObj){
+                                          impObj,
+                                          plotType = c('ggplot', 'base')){
+  plotType <- match.arg(plotType)
 
   if(!(inherits(lrmObj, 'lrm'))){
     stop('lrmObj must be of class lrm', call. = FALSE)
@@ -92,23 +96,33 @@ rms_po_assume.fit.mult.impute <- function(lrmObj,
     cof <- cof[grep(plotVars, cof$var),]
   }
 
-  if(mfrowAuto){
-    ## Get number of rows/columns for plot (plot as close to square as possible)
-    plot.rows <- ceiling(sqrt(nrow(cof)))
-    par(mfrow = c(plot.rows, plot.rows), mar = c(2, 4, 1, 1))
-  }
+  if(plotType == 'base'){
+    if(mfrowAuto){
+      ## Get number of rows/columns for plot (plot as close to square as possible)
+      plot.rows <- ceiling(sqrt(nrow(cof)))
+      par(mfrow = c(plot.rows, plot.rows), mar = c(2, 4, 1, 1))
+    }
 
-  for(k in 1:nrow(cof)){
-    plot(cuts, cof[k, 2:ncol(cof)], type = 'l', ylab = '')
-    title(main = model.outcome)
-    title(ylab = cof[k, 'var'], line = 2.5)
-    abline(h = 0, lty = 2, col = 'red')
+    for(k in 1:nrow(cof)){
+      plot(cuts, cof[k, 2:ncol(cof)], type = 'l', ylab = '')
+      title(main = model.outcome)
+      title(ylab = cof[k, 'var'], line = 2.5)
+      abline(h = 0, lty = 2, col = 'red')
+    }
+  } else{
+    cofT <- cof %>%
+      tidyr::gather(key = cutPoint, value = coefficient, dplyr::starts_with("coef.cut.")) %>%
+      mutate(cuts = as.numeric(gsub('coef\\.cut\\.', '', cutPoint)))
+
+    ggplot(data = cofT, aes(x = cuts, y = coefficient)) +
+      facet_wrap(~ var) +
+      geom_hline(yintercept = 0, colour = 'red', linetype = 'dotted') +
+      geom_line() +
+      scale_x_continuous(name = 'Outcome Cut Point', breaks = sort(unique(cofT$cuts)))
   }
 }
 
 #' @describeIn rms_po_assume Method for lrm() model fits without imputation.
-#'
-#' @importFrom rms lrm
 #'
 #' @export
 #'
@@ -116,7 +130,10 @@ rms_po_assume.default <- function(lrmObj,
                                   cuts,
                                   plotVars = NULL,
                                   mfrowAuto = FALSE,
-                                  modelData){
+                                  modelData,
+                                  plotType = c('ggplot', 'base')){
+
+  plotType <- match.arg(plotType)
 
   if(!(inherits(lrmObj, 'lrm'))){
     stop('lrmObj must be of class lrm', call. = FALSE)
@@ -154,16 +171,28 @@ rms_po_assume.default <- function(lrmObj,
     cof <- cof[grep(plotVars, cof$var),]
   }
 
-  if(mfrowAuto){
-    ## Get number of rows/columns for plot (plot as close to square as possible)
-    plot.rows <- ceiling(sqrt(nrow(cof)))
-    par(mfrow = c(plot.rows, plot.rows), mar = c(2, 4, 1, 1))
-  }
+  if(plotType == 'base'){
+    if(mfrowAuto){
+      ## Get number of rows/columns for plot (plot as close to square as possible)
+      plot.rows <- ceiling(sqrt(nrow(cof)))
+      par(mfrow = c(plot.rows, plot.rows), mar = c(2, 4, 1, 1))
+    }
 
-  for(k in 1:nrow(cof)){
-    plot(cuts, cof[k, 2:ncol(cof)], type = 'l', ylab = '')
-    title(main = model.outcome)
-    title(ylab = cof[k, 'var'], line = 2.5)
-    abline(h = 0, lty = 2, col = 'red')
+    for(k in 1:nrow(cof)){
+      plot(cuts, cof[k, 2:ncol(cof)], type = 'l', ylab = '')
+      title(main = model.outcome)
+      title(ylab = cof[k, 'var'], line = 2.5)
+      abline(h = 0, lty = 2, col = 'red')
+    }
+  } else{
+    cofT <- cof %>%
+      tidyr::gather(key = cutPoint, value = coefficient, dplyr::starts_with("coef.cut.")) %>%
+      mutate(cuts = as.numeric(gsub('coef\\.cut\\.', '', cutPoint)))
+
+    ggplot(data = cofT, aes(x = cuts, y = coefficient)) +
+      facet_wrap(~ var) +
+      geom_hline(yintercept = 0, colour = 'red', linetype = 'dotted') +
+      geom_line() +
+      scale_x_continuous(name = 'Outcome Cut Point', breaks = sort(unique(cofT$cuts)))
   }
 }
